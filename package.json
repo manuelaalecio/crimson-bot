@@ -1,0 +1,23 @@
+{
+  "name": "crimson-bot",
+  "version": "0.0.1",
+  "description": "CRIMSON é o bot dedicado para cuidar/gerenciar do canal de discord do TiTioTKS.",
+  "main": "index.js",
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "build": "tsc"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "discord.js": "^14.27.0",
+    "dotenv": "^17.4.2"
+  },
+  "devDependencies": {
+    "@types/node": "^26.2.0",
+    "tsx": "^4.23.11",
+    "typescript": "^7.0.2"
+  }
+}
