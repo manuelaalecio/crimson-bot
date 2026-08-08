@@ -20,7 +20,7 @@ async function loadCommands(): Promise<void> {
 
   for (const category of categories) {
     const categoryPath = join(commandsPath, category);
-    const commandFiles = readdirSync(categoryPath).filter((file) => extname(file) === '.ts');
+    const commandFiles = readdirSync(categoryPath).filter((file) => /\.(js|ts)$/.test(file));
 
     for (const file of commandFiles) {
       const filePath = join(categoryPath, file);
@@ -40,7 +40,7 @@ async function loadCommands(): Promise<void> {
 
 async function loadEvents(): Promise<void> {
   const eventsPath = join(__dirname, 'events');
-  const eventFiles = readdirSync(eventsPath).filter((file) => extname(file) === '.ts');
+  const eventFiles = readdirSync(eventsPath).filter((file) => /\.(js|ts)$/.test(file));
 
   for (const file of eventFiles) {
     const filePath = join(eventsPath, file);
