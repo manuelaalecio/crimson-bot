@@ -1,8 +1,8 @@
 import { Events, REST, Routes } from 'discord.js';
-import { CustomClient } from '../structures/CustomClient';
-import { config } from '../config';
+import { CustomClient } from '../structures/CustomClient.js';
+import { config } from '../config.js';
 
-export function register(client: CustomClient): void {
+export function register(client) {
   client.on(Events.ClientReady, async () => {
     console.log(`[CRIMSON] Online como ${client.user.tag}`);
 

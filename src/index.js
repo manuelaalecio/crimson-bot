@@ -1,18 +1,16 @@
 import { readdirSync } from 'node:fs';
 import { join, extname, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { Events, TextChannel, MessageFlags, PermissionFlagsBits, EmbedBuilder } from 'discord.js';
-import { CustomClient } from './structures/CustomClient';
-import { config } from './config';
-import { Command } from './@types/command';
-import { register as registerReadyEvent } from './events/ready';
+import { Events, MessageFlags, PermissionFlagsBits, EmbedBuilder } from 'discord.js';
+import { CustomClient } from './structures/CustomClient.js';
+import { config } from './config.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
 const client = new CustomClient();
 
-async function loadCommands(): Promise<void> {
+async function loadCommands() {
   const commandsPath = join(__dirname, 'commands');
   const categories = readdirSync(commandsPath, { withFileTypes: true })
     .filter((dirent) => dirent.isDirectory())
@@ -24,7 +22,7 @@ async function loadCommands(): Promise<void> {
 
     for (const file of commandFiles) {
       const filePath = join(categoryPath, file);
-      const module = await import(filePath) as { command: Command };
+      const module = await import(filePath);
       const cmd = module.command;
 
       if (!cmd?.data?.name) {
@@ -38,13 +36,13 @@ async function loadCommands(): Promise<void> {
   }
 }
 
-async function loadEvents(): Promise<void> {
+async function loadEvents() {
   const eventsPath = join(__dirname, 'events');
   const eventFiles = readdirSync(eventsPath).filter((file) => /\.(js|ts)$/.test(file));
 
   for (const file of eventFiles) {
     const filePath = join(eventsPath, file);
-    const module = await import(filePath) as { register: (client: CustomClient) => void };
+    const module = await import(filePath);
 
     if (typeof module.register === 'function') {
       module.register(client);
@@ -72,7 +70,7 @@ client.on(Events.InteractionCreate, async (interaction) => {
       const member = await interaction.guild?.members.fetch(interaction.user.id);
       if (member) {
         const missing = command.userPermissions.filter(
-          (perm) => !member.permissions.has(perm as bigint),
+          (perm) => !member.permissions.has(perm),
         );
         if (missing.length > 0) {
           await interaction.reply({
@@ -88,7 +86,7 @@ client.on(Events.InteractionCreate, async (interaction) => {
       const me = interaction.guild?.members.me;
       if (me) {
         const missing = command.botPermissions.filter(
-          (perm) => !me.permissions.has(perm as bigint),
+          (perm) => !me.permissions.has(perm),
         );
         if (missing.length > 0) {
           await interaction.reply({
@@ -113,7 +111,7 @@ client.on(Events.InteractionCreate, async (interaction) => {
   }
 });
 
-async function handleSayModal(interaction: import('discord.js').ModalSubmitInteraction): Promise<void> {
+async function handleSayModal(interaction) {
   try {
     const channelId = interaction.fields.getTextInputValue('canal_id').trim();
     const channel = await interaction.client.channels.fetch(channelId);
@@ -126,7 +124,6 @@ async function handleSayModal(interaction: import('discord.js').ModalSubmitInter
       return;
     }
 
-    const textChannel = channel as TextChannel;
     const botMember = interaction.guild?.members.me;
 
     if (!botMember) {
@@ -137,7 +134,7 @@ async function handleSayModal(interaction: import('discord.js').ModalSubmitInter
       return;
     }
 
-    const channelPerms = textChannel.permissionsFor(botMember);
+    const channelPerms = channel.permissionsFor(botMember);
     if (!channelPerms?.has(PermissionFlagsBits.SendMessages)) {
       await interaction.reply({
         content: 'Não tenho permissão para enviar mensagens nesse canal.',
@@ -148,10 +145,10 @@ async function handleSayModal(interaction: import('discord.js').ModalSubmitInter
 
     if (interaction.customId === 'say-texto') {
       const mensagem = interaction.fields.getTextInputValue('mensagem');
-      await textChannel.send(mensagem);
+      await channel.send(mensagem);
 
       await interaction.reply({
-        content: `Mensagem enviada com sucesso em ${textChannel}.`,
+        content: `Mensagem enviada com sucesso em ${channel}.`,
         flags: MessageFlags.Ephemeral,
       });
     } else if (interaction.customId === 'say-embed') {
@@ -187,10 +184,10 @@ async function handleSayModal(interaction: import('discord.js').ModalSubmitInter
         embed.setFooter({ text: footer });
       }
 
-      await textChannel.send({ embeds: [embed] });
+      await channel.send({ embeds: [embed] });
 
       await interaction.reply({
-        content: `Embed enviada com sucesso em ${textChannel}.`,
+        content: `Embed enviada com sucesso em ${channel}.`,
         flags: MessageFlags.Ephemeral,
       });
     }
@@ -206,7 +203,7 @@ async function handleSayModal(interaction: import('discord.js').ModalSubmitInter
   }
 }
 
-async function main(): Promise<void> {
+async function main() {
   await loadCommands();
   await loadEvents();
 

@@ -1,8 +1,8 @@
-import { CustomClient } from '../structures/CustomClient';
-import { startStreamPolling } from '../utils/streamNotifier';
-import { config } from '../config';
+import { CustomClient } from '../structures/CustomClient.js';
+import { startStreamPolling } from '../utils/streamNotifier.js';
+import { config } from '../config.js';
 
-export function register(client: CustomClient): void {
+export function register(client) {
   client.on('ready', () => {
     if (!config.TWITCH_CLIENT_ID || !config.TWITCH_CLIENT_SECRET) {
       console.log('[Stream] Notificações de stream desativadas: credenciais da Twitch não configuradas.');

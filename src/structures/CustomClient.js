@@ -1,8 +1,8 @@
 import { Client, Collection, GatewayIntentBits, Partials } from 'discord.js';
-import { Command } from '../@types/command';
 
-export class CustomClient extends Client<true> {
-  public commands: Collection<string, Command>;
+export class CustomClient extends Client {
+  /** @type {Collection<string, import('../@types/command.js').Command>} */
+  commands;
 
   constructor() {
     super({

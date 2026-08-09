@@ -1,39 +1,49 @@
-import { TextChannel, EmbedBuilder } from 'discord.js';
+import { EmbedBuilder } from 'discord.js';
 import { readFileSync, writeFileSync, existsSync, mkdirSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { getStreamByLogin, getUserByLogin } from './twitchApi';
-import { config } from '../config';
-import { CustomClient } from '../structures/CustomClient';
+import { getStreamByLogin, getUserByLogin } from './twitchApi.js';
+import { config } from '../config.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 const DATA_FILE = join(__dirname, '..', 'data', 'streamers.json');
 
-interface StreamersData {
-  streamers: string[];
-  lastChecked: Record<string, boolean>;
-}
+/**
+ * @typedef {Object} StreamersData
+ * @property {string[]} streamers
+ * @property {Record<string, boolean>} lastChecked
+ */
 
-function ensureDataFile(): void {
+function ensureDataFile() {
   if (!existsSync(DATA_FILE)) {
     mkdirSync(dirname(DATA_FILE), { recursive: true });
     writeFileSync(DATA_FILE, JSON.stringify({ streamers: [], lastChecked: {} }, null, 2));
   }
 }
 
-function loadStreamersData(): StreamersData {
+/**
+ * @returns {StreamersData}
+ */
+function loadStreamersData() {
   ensureDataFile();
   const raw = readFileSync(DATA_FILE, 'utf-8');
-  return JSON.parse(raw) as StreamersData;
+  return JSON.parse(raw);
 }
 
-function saveStreamersData(data: StreamersData): void {
+/**
+ * @param {StreamersData} data
+ */
+function saveStreamersData(data) {
   ensureDataFile();
   writeFileSync(DATA_FILE, JSON.stringify(data, null, 2));
 }
 
-export function addStreamer(login: string): boolean {
+/**
+ * @param {string} login
+ * @returns {boolean}
+ */
+export function addStreamer(login) {
   const data = loadStreamersData();
   const normalized = login.toLowerCase();
 
@@ -47,7 +57,11 @@ export function addStreamer(login: string): boolean {
   return true;
 }
 
-export function removeStreamer(login: string): boolean {
+/**
+ * @param {string} login
+ * @returns {boolean}
+ */
+export function removeStreamer(login) {
   const data = loadStreamersData();
   const normalized = login.toLowerCase();
   const index = data.streamers.indexOf(normalized);
@@ -62,15 +76,21 @@ export function removeStreamer(login: string): boolean {
   return true;
 }
 
-export function getStreamersList(): string[] {
+/**
+ * @returns {string[]}
+ */
+export function getStreamersList() {
   const data = loadStreamersData();
   return [...data.streamers];
 }
 
-export function startStreamPolling(client: CustomClient): void {
+/**
+ * @param {import('../structures/CustomClient.js').CustomClient} client
+ */
+export function startStreamPolling(client) {
   const POLL_INTERVAL = 60_000;
 
-  async function checkStreams(): Promise<void> {
+  async function checkStreams() {
     if (!config.STREAM_NOTIFICATION_CHANNEL_ID) {
       return;
     }
@@ -81,8 +101,6 @@ export function startStreamPolling(client: CustomClient): void {
     if (!channel || !channel.isTextBased() || channel.isDMBased()) {
       return;
     }
-
-    const textChannel = channel as TextChannel;
 
     for (const login of data.streamers) {
       try {
@@ -96,10 +114,10 @@ export function startStreamPolling(client: CustomClient): void {
             .replace('{height}', '180');
 
           const embed = new EmbedBuilder()
-            .setTitle('🔴 AO VIVO AGORA!')
+            .setTitle(' AO VIVO AGORA!')
             .setDescription(
               `**${stream.user_name}** está ao vivo!\n` +
-              `🎮 **Jogo:** ${stream.game_name}\n` +
+              ` **Jogo:** ${stream.game_name}\n` +
               `👥 **Espectadores:** ${stream.viewer_count}\n` +
               `📝 **Título:** ${stream.title}\n\n` +
               `[Assistir agora](https://twitch.tv/${stream.user_login})`
@@ -109,7 +127,7 @@ export function startStreamPolling(client: CustomClient): void {
             .setTimestamp()
             .setFooter({ text: 'CRIMSON Stream Notifications' });
 
-          await textChannel.send({
+          await channel.send({
             content: '@everyone',
             embeds: [embed],
           });

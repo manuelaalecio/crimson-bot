@@ -1,51 +1,7 @@
-import { SlashCommandBuilder, ChatInputCommandInteraction, PermissionFlagsBits, ModalBuilder, TextInputBuilder, TextInputStyle, ActionRowBuilder, MessageFlags, TextChannel, EmbedBuilder, ChannelType, Channel } from 'discord.js';
-import { Command } from '../../@types/command';
+import { SlashCommandBuilder, PermissionFlagsBits, ModalBuilder, TextInputBuilder, TextInputStyle, ActionRowBuilder, MessageFlags, EmbedBuilder, ChannelType } from 'discord.js';
 
-async function validateChannel(interaction: ChatInputCommandInteraction): Promise<TextChannel | null> {
-  const channel = interaction.options.getChannel('canal', true) as Channel;
-
-  if (!channel || !channel.isTextBased() || channel.isDMBased()) {
-    await interaction.reply({
-      content: 'O canal selecionado não é um canal de texto válido.',
-      flags: MessageFlags.Ephemeral,
-    });
-    return null;
-  }
-
-  const textChannel = channel as TextChannel;
-  const botMember = interaction.guild?.members.me;
-
-  if (!botMember) {
-    await interaction.reply({
-      content: 'Não foi possível verificar as permissões do bot.',
-      flags: MessageFlags.Ephemeral,
-    });
-    return null;
-  }
-
-  const channelPerms = textChannel.permissionsFor(botMember);
-  if (!channelPerms?.has(PermissionFlagsBits.SendMessages)) {
-    await interaction.reply({
-      content: 'Não tenho permissão para enviar mensagens nesse canal.',
-      flags: MessageFlags.Ephemeral,
-    });
-    return null;
-  }
-
-  return textChannel;
-}
-
-function parseColor(input: string | null): number {
-  if (!input) return 0xdc143c;
-  const cleaned = input.replace('#', '').trim();
-  const parsed = parseInt(cleaned, 16);
-  if (!isNaN(parsed) && cleaned.length >= 3 && cleaned.length <= 6) {
-    return parsed;
-  }
-  return 0xdc143c;
-}
-
-export const command: Command = {
+/** @type {import('../../@types/command.js').Command} */
+export const command = {
   data: new SlashCommandBuilder()
     .setName('say')
     .setDescription('Envia uma mensagem ou embed em um canal específico.')
@@ -114,7 +70,7 @@ export const command: Command = {
 
   botPermissions: [PermissionFlagsBits.SendMessages, PermissionFlagsBits.EmbedLinks],
 
-  async execute(interaction: ChatInputCommandInteraction): Promise<void> {
+  async execute(interaction) {
     try {
       const subcommand = interaction.options.getSubcommand();
 
@@ -140,8 +96,8 @@ export const command: Command = {
           .setMaxLength(4000);
 
         modal.addComponents(
-          new ActionRowBuilder<TextInputBuilder>().addComponents(canalInput),
-          new ActionRowBuilder<TextInputBuilder>().addComponents(mensagemInput),
+          new ActionRowBuilder().addComponents(canalInput),
+          new ActionRowBuilder().addComponents(mensagemInput),
         );
 
         await interaction.showModal(modal);
@@ -191,11 +147,11 @@ export const command: Command = {
           .setMaxLength(2048);
 
         modal.addComponents(
-          new ActionRowBuilder<TextInputBuilder>().addComponents(canalInput),
-          new ActionRowBuilder<TextInputBuilder>().addComponents(tituloInput),
-          new ActionRowBuilder<TextInputBuilder>().addComponents(descricaoInput),
-          new ActionRowBuilder<TextInputBuilder>().addComponents(corInput),
-          new ActionRowBuilder<TextInputBuilder>().addComponents(footerInput),
+          new ActionRowBuilder().addComponents(canalInput),
+          new ActionRowBuilder().addComponents(tituloInput),
+          new ActionRowBuilder().addComponents(descricaoInput),
+          new ActionRowBuilder().addComponents(corInput),
+          new ActionRowBuilder().addComponents(footerInput),
         );
 
         await interaction.showModal(modal);
@@ -214,7 +170,7 @@ export const command: Command = {
         const textChannel = await validateChannel(interaction);
         if (!textChannel) return;
 
-        const channelPerms = textChannel.permissionsFor(interaction.guild!.members.me!);
+        const channelPerms = textChannel.permissionsFor(interaction.guild.members.me);
         if (!channelPerms.has(PermissionFlagsBits.EmbedLinks)) {
           await interaction.reply({
             content: 'Não tenho permissão para enviar embeds nesse canal.',
@@ -259,3 +215,46 @@ export const command: Command = {
     }
   },
 };
+
+async function validateChannel(interaction) {
+  const channel = interaction.options.getChannel('canal', true);
+
+  if (!channel || !channel.isTextBased() || channel.isDMBased()) {
+    await interaction.reply({
+      content: 'O canal selecionado não é um canal de texto válido.',
+      flags: MessageFlags.Ephemeral,
+    });
+    return null;
+  }
+
+  const botMember = interaction.guild?.members.me;
+
+  if (!botMember) {
+    await interaction.reply({
+      content: 'Não foi possível verificar as permissões do bot.',
+      flags: MessageFlags.Ephemeral,
+    });
+    return null;
+  }
+
+  const channelPerms = channel.permissionsFor(botMember);
+  if (!channelPerms?.has(PermissionFlagsBits.SendMessages)) {
+    await interaction.reply({
+      content: 'Não tenho permissão para enviar mensagens nesse canal.',
+      flags: MessageFlags.Ephemeral,
+    });
+    return null;
+  }
+
+  return channel;
+}
+
+function parseColor(input) {
+  if (!input) return 0xdc143c;
+  const cleaned = input.replace('#', '').trim();
+  const parsed = parseInt(cleaned, 16);
+  if (!isNaN(parsed) && cleaned.length >= 3 && cleaned.length <= 6) {
+    return parsed;
+  }
+  return 0xdc143c;
+}

@@ -1,14 +1,11 @@
 import {
   SlashCommandBuilder,
-  ChatInputCommandInteraction,
   PermissionFlagsBits,
   MessageFlags,
 } from 'discord.js';
-import { Command } from '../../@types/command';
-import { addStreamer, removeStreamer, getStreamersList } from '../../utils/streamNotifier';
-import { validateStreamerExists } from '../../utils/twitchApi';
 
-export const command: Command = {
+/** @type {import('../../@types/command.js').Command} */
+export const command = {
   data: new SlashCommandBuilder()
     .setName('stream')
     .setDescription('Gerencia streamers monitorados para notificações de live.')
@@ -41,7 +38,7 @@ export const command: Command = {
 
   botPermissions: [PermissionFlagsBits.SendMessages],
 
-  async execute(interaction: ChatInputCommandInteraction): Promise<void> {
+  async execute(interaction) {
     try {
       const subcommand = interaction.options.getSubcommand();
 
@@ -65,12 +62,12 @@ export const command: Command = {
   },
 };
 
-async function handleAdd(interaction: ChatInputCommandInteraction): Promise<void> {
+async function handleAdd(interaction) {
   const login = interaction.options.getString('login', true).toLowerCase();
 
   await interaction.deferReply({ flags: MessageFlags.Ephemeral });
 
-  const exists = await validateStreamerExists(login);
+  const exists = await import('../../utils/twitchApi.js').then(m => m.validateStreamerExists(login));
   if (!exists) {
     await interaction.editReply({
       content: `O canal "${login}" não foi encontrado na Twitch. Verifique o login e tente novamente.`,
@@ -78,6 +75,7 @@ async function handleAdd(interaction: ChatInputCommandInteraction): Promise<void
     return;
   }
 
+  const { addStreamer } = await import('../../utils/streamNotifier.js');
   const added = addStreamer(login);
   if (!added) {
     await interaction.editReply({
@@ -91,9 +89,10 @@ async function handleAdd(interaction: ChatInputCommandInteraction): Promise<void
   });
 }
 
-async function handleRemove(interaction: ChatInputCommandInteraction): Promise<void> {
+async function handleRemove(interaction) {
   const login = interaction.options.getString('login', true).toLowerCase();
 
+  const { removeStreamer } = await import('../../utils/streamNotifier.js');
   const removed = removeStreamer(login);
   if (!removed) {
     await interaction.reply({
@@ -109,7 +108,8 @@ async function handleRemove(interaction: ChatInputCommandInteraction): Promise<v
   });
 }
 
-async function handleList(interaction: ChatInputCommandInteraction): Promise<void> {
+async function handleList(interaction) {
+  const { getStreamersList } = await import('../../utils/streamNotifier.js');
   const streamers = getStreamersList();
 
   if (streamers.length === 0) {

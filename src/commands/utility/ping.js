@@ -1,12 +1,12 @@
-import { SlashCommandBuilder, ChatInputCommandInteraction, MessageFlags } from 'discord.js';
-import { Command } from '../../@types/command';
+import { SlashCommandBuilder, MessageFlags } from 'discord.js';
 
-export const command: Command = {
+/** @type {import('../../@types/command.js').Command} */
+export const command = {
   data: new SlashCommandBuilder()
     .setName('ping')
     .setDescription('Verifica a latência do bot.'),
 
-  async execute(interaction: ChatInputCommandInteraction): Promise<void> {
+  async execute(interaction) {
     try {
       const sent = await interaction.reply({
         content: 'Calculando...',

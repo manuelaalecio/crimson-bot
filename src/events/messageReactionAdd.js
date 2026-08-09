@@ -1,9 +1,9 @@
-import { Events, TextChannel, ChannelType } from 'discord.js';
-import { CustomClient } from '../structures/CustomClient';
-import { config } from '../config';
-import { createEmbed } from '../utils/createEmbed';
+import { Events, ChannelType } from 'discord.js';
+import { CustomClient } from '../structures/CustomClient.js';
+import { config } from '../config.js';
+import { createEmbed } from '../utils/createEmbed.js';
 
-export function register(client: CustomClient): void {
+export function register(client) {
   client.on(Events.MessageReactionAdd, async (reaction, user) => {
     if (!config.REACTION_ROLE_MESSAGE_ID || !config.REACTION_ROLE_ID) return;
     if (user.bot) return;
