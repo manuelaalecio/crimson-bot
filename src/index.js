@@ -210,6 +210,37 @@ async function main() {
   await client.login(config.DISCORD_TOKEN);
 }
 
+async function sendErrorLog(error, context) {
+  if (!config.LOGS_CHANNEL_ID) return;
+
+  try {
+    const channel = await client.channels.fetch(config.LOGS_CHANNEL_ID);
+    if (!channel || !channel.isTextBased() || channel.isDMBased()) return;
+
+    const message = String(error?.stack || error || 'Erro desconhecido');
+    const truncated = message.length > 1900 ? message.slice(0, 1900) + '...' : message;
+
+    await channel.send(
+      `<@${config.ERROR_REPORT_USER_ID}> **CRIMSON - Erro ${context}:**\n` +
+      '```js\n' + truncated + '\n```'
+    );
+  } catch (e) {
+    console.error('[Logs] Falha ao enviar erro:', e);
+  }
+}
+
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('[CRIMSON] Unhandled Rejection:', reason);
+  sendErrorLog(reason, 'Unhandled Rejection');
+});
+
+process.on('uncaughtException', (error) => {
+  console.error('[CRIMSON] Uncaught Exception:', error);
+  sendErrorLog(error, 'Uncaught Exception').finally(() => {
+    process.exit(1);
+  });
+});
+
 main().catch((error) => {
   console.error('[CRIMSON] Erro fatal na inicialização:', error);
   process.exit(1);

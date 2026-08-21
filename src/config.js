@@ -19,4 +19,5 @@ export const config = {
   TWITCH_CLIENT_ID: process.env.TWITCH_CLIENT_ID ?? null,
   TWITCH_CLIENT_SECRET: process.env.TWITCH_CLIENT_SECRET ?? null,
   STREAM_NOTIFICATION_CHANNEL_ID: process.env.STREAM_NOTIFICATION_CHANNEL_ID ?? null,
+  ERROR_REPORT_USER_ID: process.env.ERROR_REPORT_USER_ID ?? null,
 };
